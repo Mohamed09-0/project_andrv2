@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#F5F5F5"
+    android:fillViewport="true">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="24dp">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Voisinage+"
+            android:textColor="#203D88"
+            android:textSize="30sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            android:text="My Profile"
+            android:textColor="#20252B"
+            android:textSize="25sp"
+            android:textStyle="bold" />
+
+        <ImageView
+            android:id="@+id/imgProfile"
+            android:layout_width="110dp"
+            android:layout_height="110dp"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginTop="25dp"
+            android:src="@android:drawable/ic_menu_myplaces"
+            android:scaleType="centerInside"
+            android:contentDescription="Profile photo"
+            android:background="#DCE4F5"
+            android:padding="20dp" />
+
+        <TextView
+            android:id="@+id/tvProfileName"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginTop="12dp"
+            android:text="User Name"
+            android:textColor="#203D88"
+            android:textSize="22sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="30dp"
+            android:text="Personal Information"
+            android:textColor="#203D88"
+            android:textSize="18sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/tvProfileFirstName"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="12dp"
+            android:text="First name:"
+            android:textColor="#20252B"
+            android:textSize="16sp" />
+
+        <TextView
+            android:id="@+id/tvProfileLastName"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="12dp"
+            android:text="Last name:"
+            android:textColor="#20252B"
+            android:textSize="16sp" />
+
+        <TextView
+            android:id="@+id/tvProfileEmail"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="12dp"
+            android:text="Email:"
+            android:textColor="#20252B"
+            android:textSize="16sp" />
+
+        <TextView
+            android:id="@+id/tvProfileLogin"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="12dp"
+            android:text="Username:"
+            android:textColor="#20252B"
+            android:textSize="16sp" />
+
+        <TextView
+            android:id="@+id/tvProfilePhone"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="12dp"
+            android:text="Phone:"
+            android:textColor="#20252B"
+            android:textSize="16sp" />
+
+        <TextView
+            android:id="@+id/tvProfileLocation"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="12dp"
+            android:text="Location: Not specified"
+            android:textColor="#20252B"
+            android:textSize="16sp" />
+
+        <Button
+            android:id="@+id/btnEditProfile"
+            android:layout_width="match_parent"
+            android:layout_height="55dp"
+            android:layout_marginTop="25dp"
+            android:text="EDIT PROFILE"
+            android:textColor="#FFFFFF"
+            android:textStyle="bold"
+            android:backgroundTint="#203D88" />
+
+    </LinearLayout>
+
+</ScrollView>
