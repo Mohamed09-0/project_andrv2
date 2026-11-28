@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<androidx.cardview.widget.CardView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_margin="8dp"
+    app:cardCornerRadius="14dp"
+    app:cardElevation="4dp"
+    app:cardUseCompatPadding="true">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="12dp">
+
+        <!-- Product photo -->
+
+        <ImageView
+            android:id="@+id/imgAnnouncement"
+            android:layout_width="match_parent"
+            android:layout_height="190dp"
+            android:scaleType="centerCrop"
+            android:src="@android:drawable/ic_menu_gallery"
+            android:contentDescription="Announcement photo" />
+
+        <!-- Title -->
+
+        <TextView
+            android:id="@+id/tvAnnouncementTitle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:text="Announcement title"
+            android:textColor="#222222"
+            android:textSize="19sp"
+            android:textStyle="bold" />
+
+        <!-- Price -->
+
+        <TextView
+            android:id="@+id/tvAnnouncementPrice"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="5dp"
+            android:text="124.00 TND"
+            android:textColor="#16834A"
+            android:textSize="18sp"
+            android:textStyle="bold" />
+
+        <!-- Category and transaction -->
+
+        <TextView
+            android:id="@+id/tvAnnouncementCategory"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="6dp"
+            android:text="Outils | VENTE"
+            android:textColor="#555555"
+            android:textSize="14sp" />
+
+        <!-- Description -->
+
+        <TextView
+            android:id="@+id/tvAnnouncementDescription"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="Announcement description"
+            android:textColor="#444444"
+            android:textSize="14sp"
+            android:maxLines="3"
+            android:ellipsize="end" />
+
+        <!-- Condition -->
+
+        <TextView
+            android:id="@+id/tvAnnouncementCondition"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="Condition: NEUF"
+            android:textColor="#555555"
+            android:textSize="13sp" />
+
+        <!-- Location -->
+
+        <TextView
+            android:id="@+id/tvAnnouncementLocation"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="6dp"
+            android:text="Tunis - Bizerte"
+            android:textColor="#666666"
+            android:textSize="13sp" />
+
+        <!-- Owner -->
+
+        <TextView
+            android:id="@+id/tvAnnouncementOwner"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="Published by: User"
+            android:textColor="#777777"
+            android:textSize="13sp" />
+
+    </LinearLayout>
+
+</androidx.cardview.widget.CardView>

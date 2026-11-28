@@ -3,7 +3,6 @@ package com.example.voisinage_plus;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.util.Log;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
@@ -19,16 +18,14 @@ import com.android.volley.toolbox.Volley;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.nio.charset.StandardCharsets;
-
 public class LoginActivity extends AppCompatActivity {
-
-    private static final String TAG = "LOGIN_ERROR";
 
     private static final String URL_LOGIN =
             "http://192.168.0.88:8000/api/login";
 
-    private EditText edtLogin, edtPassword;
+    private EditText edtLogin;
+    private EditText edtPassword;
+
     private Button btnLogin;
     private TextView tvGoRegister;
 
@@ -39,23 +36,21 @@ public class LoginActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
 
-        requestQueue = Volley.newRequestQueue(this);
-
+        // Connect XML components
         edtLogin = findViewById(R.id.edtLogin);
         edtPassword = findViewById(R.id.edtPassword);
         btnLogin = findViewById(R.id.btnLogin);
         tvGoRegister = findViewById(R.id.tvGoRegister);
 
-        // Login button
+        requestQueue = Volley.newRequestQueue(this);
+
         btnLogin.setOnClickListener(v -> loginUser());
 
-        // Open registration screen
         tvGoRegister.setOnClickListener(v -> {
             Intent intent = new Intent(
                     LoginActivity.this,
                     MainActivity.class
             );
-
             startActivity(intent);
         });
     }
@@ -66,9 +61,11 @@ public class LoginActivity extends AppCompatActivity {
         String password = edtPassword.getText().toString();
 
         if (login.isEmpty() || password.isEmpty()) {
-            Toast.makeText(this,
-                    "Please enter login and password",
-                    Toast.LENGTH_SHORT).show();
+            Toast.makeText(
+                    this,
+                    "Please enter your login and password",
+                    Toast.LENGTH_SHORT
+            ).show();
             return;
         }
 
@@ -79,7 +76,7 @@ public class LoginActivity extends AppCompatActivity {
             data.put("password", password);
 
         } catch (JSONException e) {
-            Log.e(TAG, "JSON error", e);
+            e.printStackTrace();
             return;
         }
 
@@ -90,96 +87,95 @@ public class LoginActivity extends AppCompatActivity {
                 URL_LOGIN,
                 data,
 
-                // SUCCESS
                 response -> {
 
                     btnLogin.setEnabled(true);
 
                     try {
-
                         boolean success =
-                                response.getBoolean("success");
+                                response.optBoolean("success", false);
 
-                        String message =
-                                response.getString("message");
-
-                        Toast.makeText(this,
-                                message,
-                                Toast.LENGTH_LONG).show();
-
-                        if (success) {
-
-                            JSONObject user =
-                                    response.getJSONObject("user");
-
-                            // Get user information
-                            int userId = user.getInt("id");
-
-                            String nom = user.getString("nom");
-                            String prenom = user.getString("prenom");
-                            String email = user.getString("email");
-                            String username = user.getString("login");
-                            String telephone =
-                                    user.optString("telephone", "");
-                            String photo =
-                                    user.optString("photo", "");
-
-                            // Open HomeActivity
-                            Intent intent = new Intent(
+                        if (!success) {
+                            Toast.makeText(
                                     LoginActivity.this,
-                                    HomeActivity.class
-                            );
-
-                            // Pass user information
-                            intent.putExtra("user_id", userId);
-                            intent.putExtra("nom", nom);
-                            intent.putExtra("prenom", prenom);
-                            intent.putExtra("email", email);
-                            intent.putExtra("login", username);
-                            intent.putExtra("telephone", telephone);
-                            intent.putExtra("photo", photo);
-
-                            startActivity(intent);
-
-                            finish();
+                                    response.optString(
+                                            "message",
+                                            "Login failed"
+                                    ),
+                                    Toast.LENGTH_SHORT
+                            ).show();
+                            return;
                         }
 
+                        // Get the nested user object
+                        JSONObject user =
+                                response.getJSONObject("user");
+
+                        // Get user information
+                        int userId = user.optInt("id", -1);
+
+                        String nom = user.optString("nom", "");
+                        String prenom = user.optString("prenom", "");
+                        String email = user.optString("email", "");
+                        String userLogin = user.optString("login", "");
+                        String telephone =
+                                user.optString("telephone", "");
+
+                        String photo = user.optString("photo", "");
+
+                        // Get saved location
+                        String ville = user.optString("ville", "");
+                        String quartier =
+                                user.optString("quartier", "");
+
+                        // Open HomeActivity
+                        Intent intent = new Intent(
+                                LoginActivity.this,
+                                HomeActivity.class
+                        );
+
+                        intent.putExtra("user_id", userId);
+                        intent.putExtra("nom", nom);
+                        intent.putExtra("prenom", prenom);
+                        intent.putExtra("email", email);
+                        intent.putExtra("login", userLogin);
+                        intent.putExtra("telephone", telephone);
+                        intent.putExtra("photo", photo);
+
+                        intent.putExtra("ville", ville);
+                        intent.putExtra("quartier", quartier);
+
+                        startActivity(intent);
+                        finish();
+
                     } catch (JSONException e) {
+                        e.printStackTrace();
 
-                        Log.e(TAG, "Response error", e);
-
-                        Toast.makeText(this,
+                        Toast.makeText(
+                                LoginActivity.this,
                                 "Invalid server response",
-                                Toast.LENGTH_SHORT).show();
+                                Toast.LENGTH_SHORT
+                        ).show();
                     }
                 },
 
-                // ERROR
                 error -> {
 
                     btnLogin.setEnabled(true);
 
-                    Log.e(TAG, "Login error", error);
+                    String message = "Connection error";
 
                     if (error.networkResponse != null) {
-
-                        String body = new String(
-                                error.networkResponse.data,
-                                StandardCharsets.UTF_8
-                        );
-
-                        Toast.makeText(this,
-                                "HTTP "
-                                        + error.networkResponse.statusCode
-                                        + ": " + body,
-                                Toast.LENGTH_LONG).show();
-
-                    } else {
-
-                        Toast.makeText(this,
-                                "Network error: " + error.toString(),
-                                Toast.LENGTH_LONG).show();
+                        message += " (HTTP "
+                                + error.networkResponse.statusCode
+                                + ")";
                     }
+
+                    Toast.makeText(
+                            LoginActivity.this,
+                            message,
+                            Toast.LENGTH_LONG
+                    ).show();
                 }
         );
 
@@ -191,7 +187,9 @@ public class LoginActivity extends AppCompatActivity {
         super.onDestroy();
 
         if (requestQueue != null) {
-            requestQueue.cancelAll(request -> true);
+            requestQueue.cancelAll(request ->
+                    request.getUrl().equals(URL_LOGIN)
+            );
         }
     }
 }

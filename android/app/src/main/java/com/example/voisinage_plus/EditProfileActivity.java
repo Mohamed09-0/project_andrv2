@@ -1,13 +1,18 @@
-
 package com.example.voisinage_plus;
 
-import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.net.Uri;
 import android.os.Bundle;
+import android.util.Base64;
 import android.util.Log;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.Toast;
 
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.android.volley.Request;
@@ -18,24 +23,35 @@ import com.android.volley.toolbox.Volley;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.nio.charset.StandardCharsets;
+import java.io.ByteArrayOutputStream;
+import java.io.InputStream;
 
 public class EditProfileActivity extends AppCompatActivity {
 
-    private static final String TAG = "UPDATE_PROFILE";
-
+    // Change this IP if your computer's local IP changes.
     private static final String URL_UPDATE =
             "http://192.168.0.88:8000/api/profile/update";
 
-    private EditText edtPrenom, edtNom, edtEmail;
-    private EditText edtLogin, edtTelephone;
-    private EditText edtVille, edtQuartier;
+    private static final String URL_LOCATION =
+            "http://192.168.0.88:8000/api/profile/location";
 
-    private Button btnSaveProfile;
+    private static final String URL_PHOTO =
+            "http://192.168.0.88:8000/api/profile/photo";
+
+    private EditText edtEditPrenom, edtEditNom, edtEditEmail;
+    private EditText edtEditLogin, edtEditTelephone;
+    private EditText edtEditVille, edtEditQuartier;
+
+    private ImageView imgEditProfile;
+    private Button btnChoosePhoto, btnSaveProfile;
 
     private RequestQueue requestQueue;
 
+    private Uri selectedImageUri = null;
+
     private int userId;
+
+    private ActivityResultLauncher<String> imagePickerLauncher;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -44,51 +60,78 @@ public class EditProfileActivity extends AppCompatActivity {
 
         requestQueue = Volley.newRequestQueue(this);
 
-        // Connect XML fields
-        edtPrenom = findViewById(R.id.edtEditPrenom);
-        edtNom = findViewById(R.id.edtEditNom);
-        edtEmail = findViewById(R.id.edtEditEmail);
-        edtLogin = findViewById(R.id.edtEditLogin);
-        edtTelephone = findViewById(R.id.edtEditTelephone);
-        edtVille = findViewById(R.id.edtEditVille);
-        edtQuartier = findViewById(R.id.edtEditQuartier);
-
-        btnSaveProfile = findViewById(R.id.btnSaveProfile);
-
-        // Receive existing information
+        // Get user ID
         userId = getIntent().getIntExtra("user_id", -1);
 
-        edtPrenom.setText(getIntent().getStringExtra("prenom"));
-        edtNom.setText(getIntent().getStringExtra("nom"));
-        edtEmail.setText(getIntent().getStringExtra("email"));
-        edtLogin.setText(getIntent().getStringExtra("login"));
-        edtTelephone.setText(getIntent().getStringExtra("telephone"));
-        edtVille.setText(getIntent().getStringExtra("ville"));
-        edtQuartier.setText(getIntent().getStringExtra("quartier"));
+        if (userId == -1) {
+            String idString = getIntent().getStringExtra("user_id");
+            if (idString != null) {
+                try {
+                    userId = Integer.parseInt(idString);
+                } catch (NumberFormatException e) {
+                    userId = -1;
+                }
+            }
+        }
+
+        // Connect XML fields
+        edtEditPrenom = findViewById(R.id.edtEditPrenom);
+        edtEditNom = findViewById(R.id.edtEditNom);
+        edtEditEmail = findViewById(R.id.edtEditEmail);
+        edtEditLogin = findViewById(R.id.edtEditLogin);
+        edtEditTelephone = findViewById(R.id.edtEditTelephone);
+        edtEditVille = findViewById(R.id.edtEditVille);
+        edtEditQuartier = findViewById(R.id.edtEditQuartier);
+
+        imgEditProfile = findViewById(R.id.imgEditProfile);
+        btnChoosePhoto = findViewById(R.id.btnChoosePhoto);
+        btnSaveProfile = findViewById(R.id.btnSaveProfile);
+
+        // Fill fields with current information
+        edtEditPrenom.setText(getIntent().getStringExtra("prenom"));
+        edtEditNom.setText(getIntent().getStringExtra("nom"));
+        edtEditEmail.setText(getIntent().getStringExtra("email"));
+        edtEditLogin.setText(getIntent().getStringExtra("login"));
+        edtEditTelephone.setText(getIntent().getStringExtra("telephone"));
+        edtEditVille.setText(getIntent().getStringExtra("ville"));
+        edtEditQuartier.setText(getIntent().getStringExtra("quartier"));
+
+        // Configure gallery picker
+        imagePickerLauncher = registerForActivityResult(
+                new ActivityResultContracts.GetContent(),
+                uri -> {
+                    if (uri != null) {
+                        selectedImageUri = uri;
+                        imgEditProfile.setImageURI(uri);
+                    }
+                }
+        );
+
+        btnChoosePhoto.setOnClickListener(v ->
+                imagePickerLauncher.launch("image/*")
+        );
 
         btnSaveProfile.setOnClickListener(v -> updateProfile());
     }
 
+    // STEP 1: Update personal information
     private void updateProfile() {
 
-        String prenom = edtPrenom.getText().toString().trim();
-        String nom = edtNom.getText().toString().trim();
-        String email = edtEmail.getText().toString().trim();
-        String login = edtLogin.getText().toString().trim();
-        String telephone = edtTelephone.getText().toString().trim();
-
-        if (prenom.isEmpty() || nom.isEmpty()
-                || email.isEmpty() || login.isEmpty()) {
-
-            Toast.makeText(this,
-                    "Please complete all required fields",
-                    Toast.LENGTH_SHORT).show();
+        if (userId == -1) {
+            Toast.makeText(this, "User ID is missing", Toast.LENGTH_SHORT).show();
             return;
         }
 
-        if (userId == -1) {
+        String prenom = edtEditPrenom.getText().toString().trim();
+        String nom = edtEditNom.getText().toString().trim();
+        String email = edtEditEmail.getText().toString().trim();
+        String login = edtEditLogin.getText().toString().trim();
+        String telephone = edtEditTelephone.getText().toString().trim();
+
+        if (prenom.isEmpty() || nom.isEmpty()
+                || email.isEmpty() || login.isEmpty()) {
             Toast.makeText(this,
-                    "User ID is missing",
+                    "Please complete all required fields",
                     Toast.LENGTH_SHORT).show();
             return;
         }
@@ -104,7 +147,7 @@ public class EditProfileActivity extends AppCompatActivity {
             data.put("telephone", telephone);
 
         } catch (JSONException e) {
-            Log.e(TAG, "JSON error", e);
+            e.printStackTrace();
             return;
         }
 
@@ -114,86 +157,210 @@ public class EditProfileActivity extends AppCompatActivity {
                 Request.Method.POST,
                 URL_UPDATE,
                 data,
-
-                response -> {
-
-                    btnSaveProfile.setEnabled(true);
-
-                    try {
-                        boolean success =
-                                response.getBoolean("success");
-
-                        String message =
-                                response.getString("message");
-
-                        Toast.makeText(this,
-                                message,
-                                Toast.LENGTH_LONG).show();
-
-                        if (success) {
-
-                            JSONObject user =
-                                    response.getJSONObject("user");
-
-                            // Return updated information
-                            Intent result = new Intent();
-
-                            result.putExtra("user_id", user.getInt("id"));
-                            result.putExtra("prenom", user.getString("prenom"));
-                            result.putExtra("nom", user.getString("nom"));
-                            result.putExtra("email", user.getString("email"));
-                            result.putExtra("login", user.getString("login"));
-                            result.putExtra("telephone",
-                                    user.optString("telephone", ""));
-
-                            // Location is not saved by this API yet
-                            result.putExtra("ville",
-                                    edtVille.getText().toString().trim());
-                            result.putExtra("quartier",
-                                    edtQuartier.getText().toString().trim());
-
-                            setResult(RESULT_OK, result);
-                            finish();
-                        }
-
-                    } catch (JSONException e) {
-                        Log.e(TAG, "Response error", e);
-
-                        Toast.makeText(this,
-                                "Invalid server response",
-                                Toast.LENGTH_SHORT).show();
-                    }
-                },
-
+                response -> updateLocation(),
                 error -> {
-
                     btnSaveProfile.setEnabled(true);
-
-                    Log.e(TAG, "Update error", error);
-
-                    if (error.networkResponse != null) {
-
-                        String body = new String(
-                                error.networkResponse.data,
-                                StandardCharsets.UTF_8
-                        );
-
-                        Toast.makeText(this,
-                                "HTTP " +
-                                        error.networkResponse.statusCode
-                                        + ": " + body,
-                                Toast.LENGTH_LONG).show();
-
-                    } else {
-
-                        Toast.makeText(this,
-                                "Network error: " + error.toString(),
-                                Toast.LENGTH_LONG).show();
-                    }
+                    showError("Profile update failed", error);
                 }
         );
 
         requestQueue.add(request);
+    }
+
+    // STEP 2: Update city and neighborhood
+    private void updateLocation() {
+
+        String ville = edtEditVille.getText().toString().trim();
+        String quartier = edtEditQuartier.getText().toString().trim();
+
+        if (ville.isEmpty()) {
+            btnSaveProfile.setEnabled(true);
+            Toast.makeText(this,
+                    "Please enter your city",
+                    Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        JSONObject data = new JSONObject();
+
+        try {
+            data.put("user_id", userId);
+            data.put("ville", ville);
+            data.put("quartier", quartier);
+
+        } catch (JSONException e) {
+            e.printStackTrace();
+            btnSaveProfile.setEnabled(true);
+            return;
+        }
+
+        JsonObjectRequest request = new JsonObjectRequest(
+                Request.Method.POST,
+                URL_LOCATION,
+                data,
+                response -> {
+                    if (selectedImageUri != null) {
+                        uploadPhoto();
+                    } else {
+                        finishSuccessfully();
+                    }
+                },
+                error -> {
+                    btnSaveProfile.setEnabled(true);
+                    showError("Location update failed", error);
+                }
+        );
+
+        requestQueue.add(request);
+    }
+
+    // STEP 3: Convert selected photo to Base64 and upload it
+    private void uploadPhoto() {
+
+        String imageBase64 = convertImageToBase64(selectedImageUri);
+
+        if (imageBase64 == null) {
+            btnSaveProfile.setEnabled(true);
+            Toast.makeText(this,
+                    "Could not read selected image",
+                    Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        JSONObject data = new JSONObject();
+
+        try {
+            data.put("user_id", userId);
+            data.put("image_base64", imageBase64);
+
+        } catch (JSONException e) {
+            e.printStackTrace();
+            btnSaveProfile.setEnabled(true);
+            return;
+        }
+
+        JsonObjectRequest request = new JsonObjectRequest(
+                Request.Method.POST,
+                URL_PHOTO,
+                data,
+                response -> finishSuccessfully(),
+                error -> {
+                    btnSaveProfile.setEnabled(true);
+                    showError("Photo upload failed", error);
+                }
+        );
+
+        requestQueue.add(request);
+    }
+
+    // Convert image to a compressed JPEG Base64 string
+    private String convertImageToBase64(Uri imageUri) {
+
+        try {
+            InputStream inputStream =
+                    getContentResolver().openInputStream(imageUri);
+
+            if (inputStream == null) {
+                return null;
+            }
+
+            Bitmap original = BitmapFactory.decodeStream(inputStream);
+            inputStream.close();
+
+            if (original == null) {
+                return null;
+            }
+
+            // Resize large images to reduce upload size
+            int maxDimension = 1000;
+            int width = original.getWidth();
+            int height = original.getHeight();
+
+            float scale = Math.min(
+                    1f,
+                    (float) maxDimension / Math.max(width, height)
+            );
+
+            int newWidth = Math.round(width * scale);
+            int newHeight = Math.round(height * scale);
+
+            Bitmap resized = Bitmap.createScaledBitmap(
+                    original, newWidth, newHeight, true
+            );
+
+            ByteArrayOutputStream outputStream =
+                    new ByteArrayOutputStream();
+
+            resized.compress(
+                    Bitmap.CompressFormat.JPEG,
+                    75,
+                    outputStream
+            );
+
+            byte[] imageBytes = outputStream.toByteArray();
+
+            if (resized != original) {
+                resized.recycle();
+            }
+            original.recycle();
+
+            return Base64.encodeToString(
+                    imageBytes,
+                    Base64.NO_WRAP
+            );
+
+        } catch (Exception e) {
+            Log.e("PROFILE_PHOTO", "Image conversion failed", e);
+            return null;
+        }
+    }
+
+    // Return updated information to HomeActivity
+    private void finishSuccessfully() {
+
+        getIntent().putExtra("user_id", userId);
+        getIntent().putExtra("prenom",
+                edtEditPrenom.getText().toString().trim());
+        getIntent().putExtra("nom",
+                edtEditNom.getText().toString().trim());
+        getIntent().putExtra("email",
+                edtEditEmail.getText().toString().trim());
+        getIntent().putExtra("login",
+                edtEditLogin.getText().toString().trim());
+        getIntent().putExtra("telephone",
+                edtEditTelephone.getText().toString().trim());
+        getIntent().putExtra("ville",
+                edtEditVille.getText().toString().trim());
+        getIntent().putExtra("quartier",
+                edtEditQuartier.getText().toString().trim());
+
+        setResult(RESULT_OK, getIntent());
+
+        Toast.makeText(this,
+                "Profile updated successfully",
+                Toast.LENGTH_SHORT).show();
+
+        finish();
+    }
+
+    private void showError(String message,
+                           com.android.volley.VolleyError error) {
+
+        String details = message;
+
+        if (error.networkResponse != null) {
+            details += " (HTTP " + error.networkResponse.statusCode + ")";
+            if (error.networkResponse.data != null) {
+                details += ": " +
+                        new String(error.networkResponse.data);
+            }
+        } else if (error.getMessage() != null) {
+            details += ": " + error.getMessage();
+        }
+
+        Log.e("PROFILE_API", details, error);
+
+        Toast.makeText(this, details, Toast.LENGTH_LONG).show();
     }
 
     @Override
@@ -201,7 +368,11 @@ public class EditProfileActivity extends AppCompatActivity {
         super.onDestroy();
 
         if (requestQueue != null) {
-            requestQueue.cancelAll(request -> true);
+            requestQueue.cancelAll(request ->
+                    request.getUrl().equals(URL_UPDATE)
+                            || request.getUrl().equals(URL_LOCATION)
+                            || request.getUrl().equals(URL_PHOTO)
+            );
         }
     }
 }

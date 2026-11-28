@@ -1,3 +1,18 @@
 <resources>
+
     <string name="app_name">Voisinage_plus</string>
+
+    <string-array name="etats_objet">
+        <item>NEUF</item>
+        <item>TRES_BON</item>
+        <item>BON</item>
+        <item>MOYEN</item>
+        <item>ABIME</item>
+    </string-array>
+
+    <string-array name="types_transaction">
+        <item>VENTE</item>
+        <item>LOCATION</item>
+        <item>PRET</item>
+    </string-array>
 </resources>

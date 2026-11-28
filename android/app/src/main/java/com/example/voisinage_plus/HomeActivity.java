@@ -2,15 +2,27 @@
 package com.example.voisinage_plus;
 
 import android.content.Intent;
+import android.graphics.Color;
 import android.os.Bundle;
+import android.view.View;
+import android.view.Window;
 import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.TextView;
 
-import androidx.activity.result.ActivityResultLauncher;
-import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.graphics.Insets;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowCompat;
+import androidx.core.view.WindowInsetsCompat;
+
+import com.bumptech.glide.Glide;
 
 public class HomeActivity extends AppCompatActivity {
+
+    private int userId;
+
+    private ImageView imgProfile;
 
     private TextView tvProfileName;
     private TextView tvProfileFirstName;
@@ -22,17 +34,55 @@ public class HomeActivity extends AppCompatActivity {
 
     private Button btnEditProfile;
 
-    private int userId;
-    private String nom, prenom, email, login, telephone;
-    private String ville = "";
-    private String quartier = "";
-
-    private ActivityResultLauncher<Intent> editProfileLauncher;
+    private String nom, prenom, email, login;
+    private String telephone, photo, ville, quartier;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        // Enable edge-to-edge and handle system bars ourselves
+        Window window = getWindow();
+        WindowCompat.setDecorFitsSystemWindows(window, false);
+
+        window.setStatusBarColor(Color.parseColor("#F5F6F8"));
+        window.setNavigationBarColor(Color.WHITE);
+
+        window.getDecorView().setSystemUiVisibility(
+                View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR |
+                        View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR
+        );
+
         setContentView(R.layout.activity_profile);
+
+        // Reserve space for Android status and navigation bars
+        View root = findViewById(R.id.profileRoot);
+
+        final int initialLeft = root.getPaddingLeft();
+        final int initialTop = root.getPaddingTop();
+        final int initialRight = root.getPaddingRight();
+        final int initialBottom = root.getPaddingBottom();
+
+        ViewCompat.setOnApplyWindowInsetsListener(root, (view, insets) -> {
+
+            Insets systemBars = insets.getInsets(
+                    WindowInsetsCompat.Type.systemBars()
+            );
+
+            view.setPadding(
+                    initialLeft + systemBars.left,
+                    initialTop + systemBars.top,
+                    initialRight + systemBars.right,
+                    initialBottom + systemBars.bottom
+            );
+
+            return insets;
+        });
+
+        ViewCompat.requestApplyInsets(root);
+
+        // Initialize views
+        imgProfile = findViewById(R.id.imgProfile);
 
         tvProfileName = findViewById(R.id.tvProfileName);
         tvProfileFirstName = findViewById(R.id.tvProfileFirstName);
@@ -44,75 +94,115 @@ public class HomeActivity extends AppCompatActivity {
 
         btnEditProfile = findViewById(R.id.btnEditProfile);
 
-        // Receive information from LoginActivity
-        userId = getIntent().getIntExtra("user_id", -1);
-        nom = getIntent().getStringExtra("nom");
-        prenom = getIntent().getStringExtra("prenom");
-        email = getIntent().getStringExtra("email");
-        login = getIntent().getStringExtra("login");
-        telephone = getIntent().getStringExtra("telephone");
+        // Get logged-in user information
+        Intent intent = getIntent();
 
-        displayProfile();
+        userId = intent.getIntExtra("user_id", -1);
+        nom = intent.getStringExtra("nom");
+        prenom = intent.getStringExtra("prenom");
+        email = intent.getStringExtra("email");
+        login = intent.getStringExtra("login");
+        telephone = intent.getStringExtra("telephone");
+        photo = intent.getStringExtra("photo");
+        ville = intent.getStringExtra("ville");
+        quartier = intent.getStringExtra("quartier");
 
-        // Receive updated information when EditProfileActivity closes
-        editProfileLauncher = registerForActivityResult(
-                new ActivityResultContracts.StartActivityForResult(),
-                result -> {
-                    if (result.getResultCode() == RESULT_OK
-                            && result.getData() != null) {
-
-                        Intent data = result.getData();
-
-                        prenom = data.getStringExtra("prenom");
-                        nom = data.getStringExtra("nom");
-                        email = data.getStringExtra("email");
-                        login = data.getStringExtra("login");
-                        telephone = data.getStringExtra("telephone");
-                        ville = data.getStringExtra("ville");
-                        quartier = data.getStringExtra("quartier");
-
-                        displayProfile();
-                    }
-                }
+        // Display profile
+        tvProfileName.setText(
+                (prenom != null ? prenom : "") + " " +
+                        (nom != null ? nom : "")
         );
 
-        btnEditProfile.setOnClickListener(v -> openEditProfile());
-    }
+        tvProfileFirstName.setText(prenom != null ? prenom : "");
+        tvProfileLastName.setText(nom != null ? nom : "");
+        tvProfileEmail.setText(email != null ? email : "");
+        tvProfileLogin.setText(login != null ? login : "");
+        tvProfilePhone.setText(telephone != null ? telephone : "");
 
-    private void displayProfile() {
+        String location = "";
 
-        tvProfileName.setText(prenom + " " + nom);
-        tvProfileFirstName.setText("First name: " + prenom);
-        tvProfileLastName.setText("Last name: " + nom);
-        tvProfileEmail.setText("Email: " + email);
-        tvProfileLogin.setText("Username: " + login);
-        tvProfilePhone.setText("Phone: " + telephone);
-
-        String location = ville.isEmpty() ? "Not specified" : ville;
-
-        if (!quartier.isEmpty()) {
-            location += ", " + quartier;
+        if (ville != null) {
+            location += ville;
         }
 
-        tvProfileLocation.setText("Location: " + location);
-    }
+        if (quartier != null && !quartier.isEmpty()) {
+            if (!location.isEmpty()) {
+                location += " - ";
+            }
 
-    private void openEditProfile() {
+            location += quartier;
+        }
 
-        Intent intent = new Intent(
-                HomeActivity.this,
-                EditProfileActivity.class
-        );
+        tvProfileLocation.setText(location);
 
-        intent.putExtra("user_id", userId);
-        intent.putExtra("nom", nom);
-        intent.putExtra("prenom", prenom);
-        intent.putExtra("email", email);
-        intent.putExtra("login", login);
-        intent.putExtra("telephone", telephone);
-        intent.putExtra("ville", ville);
-        intent.putExtra("quartier", quartier);
+        // Load profile photo
+        if (photo != null && !photo.isEmpty()) {
 
-        editProfileLauncher.launch(intent);
+            String photoUrl = photo;
+
+            if (photo.startsWith("/")) {
+                photoUrl = "http://192.168.0.88:8000" + photo;
+            }
+
+            Glide.with(this)
+                    .load(photoUrl)
+                    .placeholder(android.R.drawable.ic_menu_camera)
+                    .error(android.R.drawable.ic_menu_camera)
+                    .centerCrop()
+                    .into(imgProfile);
+        }
+
+        // Edit profile
+        btnEditProfile.setOnClickListener(v -> {
+
+            Intent editIntent = new Intent(
+                    HomeActivity.this,
+                    EditProfileActivity.class
+            );
+
+            editIntent.putExtra("user_id", userId);
+            editIntent.putExtra("nom", nom);
+            editIntent.putExtra("prenom", prenom);
+            editIntent.putExtra("email", email);
+            editIntent.putExtra("login", login);
+            editIntent.putExtra("telephone", telephone);
+            editIntent.putExtra("photo", photo);
+            editIntent.putExtra("ville", ville);
+            editIntent.putExtra("quartier", quartier);
+
+            startActivity(editIntent);
+        });
+
+        // Bottom navigation
+
+        findViewById(R.id.navHome).setOnClickListener(v -> {
+            // Already on Home/Profile
+        });
+
+        findViewById(R.id.navBrowse).setOnClickListener(v -> {
+
+            Intent browseIntent = new Intent(
+                    HomeActivity.this,
+                    AnnouncementsActivity.class
+            );
+
+            startActivity(browseIntent);
+        });
+
+        findViewById(R.id.navPublish).setOnClickListener(v -> {
+
+            Intent publishIntent = new Intent(
+                    HomeActivity.this,
+                    PublishActivity.class
+            );
+
+            publishIntent.putExtra("user_id", userId);
+
+            startActivity(publishIntent);
+        });
+
+        findViewById(R.id.navProfile).setOnClickListener(v -> {
+            // Already on Profile
+        });
     }
 }
