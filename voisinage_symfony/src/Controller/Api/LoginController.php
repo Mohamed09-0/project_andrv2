@@ -36,6 +36,7 @@ class LoginController extends AbstractController
             ], 400);
         }
 
+        // Find user by login
         $user = $entityManager
             ->getRepository(User::class)
             ->findOneBy(['login' => $login]);
@@ -46,13 +47,20 @@ class LoginController extends AbstractController
         )) {
             return $this->json([
                 'success' => false,
-                'message' => 'Invalid login or password'
+                'message' => 'Incorrect login or password'
             ], 401);
         }
+
+        // Retrieve the user's location
+        $location = $user->getLocalisation();
+
+        $ville = $location ? $location->getVille() : null;
+        $quartier = $location ? $location->getQuartier() : null;
 
         return $this->json([
             'success' => true,
             'message' => 'Login successful',
+
             'user' => [
                 'id' => $user->getId(),
                 'nom' => $user->getNom(),
@@ -61,8 +69,12 @@ class LoginController extends AbstractController
                 'login' => $user->getLogin(),
                 'telephone' => $user->getTelephone(),
                 'photo' => $user->getPhoto(),
-                'role' => $user->getRole()
+                'role' => $user->getRole(),
+
+                // Location information
+                'ville' => $ville,
+                'quartier' => $quartier
             ]
-        ], 200);
+        ]);
     }
 }

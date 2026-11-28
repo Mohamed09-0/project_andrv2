@@ -14,16 +14,16 @@ class Localisation
     #[ORM\Column]
     private ?int $id = null;
 
-    #[ORM\Column(length: 100)]
+    #[ORM\Column(length: 100, nullable: true)]
     private ?string $ville = null;
 
     #[ORM\Column(length: 100, nullable: true)]
     private ?string $quartier = null;
 
-    #[ORM\Column(type: Types::DECIMAL, precision: 10, scale: 7)]
+    #[ORM\Column(type: Types::DECIMAL, precision: 10, scale: 7, nullable: true)]
     private ?string $latitude = null;
 
-    #[ORM\Column(type: Types::DECIMAL, precision: 10, scale: 7)]
+    #[ORM\Column(type: Types::DECIMAL, precision: 10, scale: 7, nullable: true)]
     private ?string $longitude = null;
 
     public function getId(): ?int
@@ -36,10 +36,9 @@ class Localisation
         return $this->ville;
     }
 
-    public function setVille(string $ville): static
+    public function setVille(?string $ville): static
     {
         $this->ville = $ville;
-
         return $this;
     }
 
@@ -51,7 +50,6 @@ class Localisation
     public function setQuartier(?string $quartier): static
     {
         $this->quartier = $quartier;
-
         return $this;
     }
 
@@ -60,10 +58,9 @@ class Localisation
         return $this->latitude;
     }
 
-    public function setLatitude(string $latitude): static
+    public function setLatitude(?string $latitude): static
     {
         $this->latitude = $latitude;
-
         return $this;
     }
 
@@ -72,10 +69,9 @@ class Localisation
         return $this->longitude;
     }
 
-    public function setLongitude(string $longitude): static
+    public function setLongitude(?string $longitude): static
     {
         $this->longitude = $longitude;
-
         return $this;
     }
 }

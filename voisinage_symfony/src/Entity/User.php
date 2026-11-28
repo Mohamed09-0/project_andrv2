@@ -38,29 +38,111 @@ class User
     #[ORM\Column(length: 50, nullable: true)]
     private ?string $role = null;
 
-    public function getId(): ?int { return $this->id; }
+    #[ORM\ManyToOne(targetEntity: Localisation::class)]
+    #[ORM\JoinColumn(name: 'localisation_id', referencedColumnName: 'id', nullable: true, onDelete: 'SET NULL')]
+    private ?Localisation $localisation = null;
 
-    public function getNom(): ?string { return $this->nom; }
-    public function setNom(string $nom): static { $this->nom = $nom; return $this; }
+    public function getId(): ?int
+    {
+        return $this->id;
+    }
 
-    public function getPrenom(): ?string { return $this->prenom; }
-    public function setPrenom(string $prenom): static { $this->prenom = $prenom; return $this; }
+    public function getNom(): ?string
+    {
+        return $this->nom;
+    }
 
-    public function getEmail(): ?string { return $this->email; }
-    public function setEmail(string $email): static { $this->email = $email; return $this; }
+    public function setNom(string $nom): static
+    {
+        $this->nom = $nom;
+        return $this;
+    }
 
-    public function getLogin(): ?string { return $this->login; }
-    public function setLogin(string $login): static { $this->login = $login; return $this; }
+    public function getPrenom(): ?string
+    {
+        return $this->prenom;
+    }
 
-    public function getMotDePasseHash(): ?string { return $this->motDePasseHash; }
-    public function setMotDePasseHash(string $hash): static { $this->motDePasseHash = $hash; return $this; }
+    public function setPrenom(string $prenom): static
+    {
+        $this->prenom = $prenom;
+        return $this;
+    }
 
-    public function getTelephone(): ?string { return $this->telephone; }
-    public function setTelephone(?string $telephone): static { $this->telephone = $telephone; return $this; }
+    public function getEmail(): ?string
+    {
+        return $this->email;
+    }
 
-    public function getPhoto(): ?string { return $this->photo; }
-    public function setPhoto(?string $photo): static { $this->photo = $photo; return $this; }
+    public function setEmail(string $email): static
+    {
+        $this->email = $email;
+        return $this;
+    }
 
-    public function getRole(): ?string { return $this->role; }
-    public function setRole(?string $role): static { $this->role = $role; return $this; }
+    public function getLogin(): ?string
+    {
+        return $this->login;
+    }
+
+    public function setLogin(string $login): static
+    {
+        $this->login = $login;
+        return $this;
+    }
+
+    public function getMotDePasseHash(): ?string
+    {
+        return $this->motDePasseHash;
+    }
+
+    public function setMotDePasseHash(string $motDePasseHash): static
+    {
+        $this->motDePasseHash = $motDePasseHash;
+        return $this;
+    }
+
+    public function getTelephone(): ?string
+    {
+        return $this->telephone;
+    }
+
+    public function setTelephone(?string $telephone): static
+    {
+        $this->telephone = $telephone;
+        return $this;
+    }
+
+    public function getPhoto(): ?string
+    {
+        return $this->photo;
+    }
+
+    public function setPhoto(?string $photo): static
+    {
+        $this->photo = $photo;
+        return $this;
+    }
+
+    public function getRole(): ?string
+    {
+        return $this->role;
+    }
+
+    public function setRole(?string $role): static
+    {
+        $this->role = $role;
+        return $this;
+    }
+
+    public function getLocalisation(): ?Localisation
+    {
+        return $this->localisation;
+    }
+
+    public function setLocalisation(?Localisation $localisation): static
+    {
+        $this->localisation = $localisation;
+        return $this;
+    }
 }
